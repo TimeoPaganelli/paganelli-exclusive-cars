@@ -36,3 +36,32 @@ a{color:var(--text);text-decoration:none}
 .dot{width:8px;height:8px;border-radius:999px;background:#2a2a2e}
 .dot.on{background:var(--gold)}
 .hide{display:none !important}
+/* === HERO en pleine largeur avec fond === */
+.hero {
+  position: relative;
+  min-height: 420px; /* hauteur du bloc */
+  background: url('/hero-gta.jpg') center/cover no-repeat;
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+/* léger dégradé sombre pour lisibilité du texte */
+.hero::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(0,0,0,.35), rgba(0,0,0,.55));
+}
+
+/* bloc de texte au-dessus du fond */
+.hero .card {
+  position: relative;
+  z-index: 1;
+  background: rgba(0,0,0,.45);
+  backdrop-filter: blur(2px);
+  border: 1px solid rgba(255,255,255,.08);
+  border-radius: 14px;
+  padding: 22px 22px 18px;
+  max-width: 680px;
+}
+
