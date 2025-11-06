@@ -168,18 +168,28 @@ body::after {
 /* Bloc du texte (bannière) */
 .hero .card {
   position: absolute;
-  top: 18%; /* un peu plus bas sous le logo */
-  left: 12%; /* décalé à gauche sous le logo */
-  transform: none; /* on retire le centrage */
+  top: 8%;          /* remonte la bannière plus haut */
+  left: 6%;         /* décale bien vers la gauche sous le logo */
+  transform: none;  /* on garde la position naturelle */
   background: rgba(0, 0, 0, 0.55);
-  padding: 24px 30px;
+  padding: 22px 28px;
   border-radius: 14px;
-  max-width: 700px;
+  max-width: 640px;
   color: white;
-  text-align: center;
+  text-align: left; /* aligne le texte sur la gauche */
   backdrop-filter: blur(2px);
   border: 1px solid rgba(255, 255, 255, 0.1);
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+}
+
+/* Pour les écrans mobiles */
+@media (max-width: 768px) {
+  .hero .card {
+    top: 12%;
+    left: 4%;
+    max-width: 90%;
+    padding: 16px 20px;
+  }
 }
 
 /* Titre et boutons */
