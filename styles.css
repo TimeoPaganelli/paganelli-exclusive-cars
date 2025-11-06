@@ -149,6 +149,68 @@ body::after {
   right: 0;
   background: radial-gradient(circle at right center, rgba(212,175,55,0.12), transparent 80%);
 }
+/* --- Placement du texte sous le logo dans le hero --- */
+.hero {
+  position: relative;
+  width: 100%;
+  max-width: 1200px; /* garde une belle proportion */
+  margin: 0 auto;
+  text-align: center;
+}
+
+.hero img.car {
+  width: 100%;
+  height: auto;
+  border-radius: 12px;
+  object-fit: cover;
+}
+
+/* Bloc du texte (bannière) */
+.hero .card {
+  position: absolute;
+  top: 13%; /* position sous le logo — ajuste entre 10 et 18% selon ton goût */
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.55);
+  padding: 24px 30px;
+  border-radius: 14px;
+  max-width: 700px;
+  color: white;
+  text-align: center;
+  backdrop-filter: blur(2px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+}
+
+/* Titre et boutons */
+.hero .card h1 {
+  margin-top: 0;
+  font-size: 2rem;
+  line-height: 1.2;
+}
+
+.hero .card p {
+  font-size: 1rem;
+  margin-bottom: 12px;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.hero .card button {
+  margin: 6px;
+}
+
+/* Responsive pour mobile */
+@media (max-width: 768px) {
+  .hero .card {
+    top: 18%;
+    max-width: 90%;
+    padding: 18px 20px;
+  }
+
+  .hero .card h1 {
+    font-size: 1.5rem;
+  }
+}
 
 
 
