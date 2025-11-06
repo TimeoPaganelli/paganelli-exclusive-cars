@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Catalogue — Paganelli Exclusive Cars</title>
+  <link rel="stylesheet" href="/styles.css" />
+  <script defer src="/scripts/identity-guard.js"></script>
+</head>
+<body>
+  <header class="container nav">
+    <a class="brand" href="/"><span>Paganelli</span> Exclusive Cars</a>
+    <div class="links">
+      <a href="/catalogue.html" class="btn">Catalogue</a>
+      <a id="add-btn" href="/admin/" class="btn cta hide">Ajouter véhicule</a>
+    </div>
+  </header>
+  <main class="container">
+    <h1>Catalogue</h1>
+    <p class="badge">Les véhicules apparaissent ici automatiquement après ajout via l’espace administrateur.</p>
+    <div id="grid" class="grid" style="margin-top:16px"></div>
+  </main>
+  <footer class="container footer">
+    <small>&copy; <span id="y"></span> Paganelli Exclusive Cars</small>
+  </footer>
+  <script>document.getElementById('y').textContent=new Date().getFullYear()</script>
+  <script>
+    async function load() {
+      try{
+        const res = await fetch('/data/vehicles.json', {cache:'no-store'});
+        const data = await res.json();
+        const grid = document.getElementById('grid');
+        if(!data.vehicles || !data.vehicles.length){
+          grid.innerHTML = '<div class="card"><p>Aucun véhicule pour le moment.</p></div>';
+          return;
+        }
+        const toDot = (n) => Array.from({length:5}, (_,i)=>'<span class="dot '+(i<n?'on':'')+'"></span>').join('');
+        grid.innerHTML = data.vehicles.map(v => `
+          <article class="card">
+            <img src="${(v.photos && v.photos[0]) || 'https://images.unsplash.com/photo-1511919884226-fd3cad34687c?q=80&w=1200&auto=format&fit=crop'}" alt="${v.nom||'Véhicule'}" style="width:100%;aspect-ratio:16/10;object-fit:cover;border-radius:12px;border:1px solid var(--border)">
+            <h3 style="margin:12px 0">${v.nom||'Véhicule'}</h3>
+            <div class="kpi">
+              <div class="meter"><strong>Moteur</strong><div class="dots">${toDot(v.moteur||0)}</div></div>
+              <div class="meter"><strong>Transmission</strong><div class="dots">${toDot(v.transmission||0)}</div></div>
+              <div class="meter"><strong>Suspension</strong><div class="dots">${toDot(v.suspension||0)}</div></div>
+              <div class="meter"><strong>Frein</strong><div class="dots">${toDot(v.frein||0)}</div></div>
+              <div class="meter"><strong>Blindage</strong><div class="dots">${toDot(v.blindage||0)}</div></div>
+              <div class="meter"><strong>Turbo</strong><span class="badge">${v.turbo?'Oui':'Non'}</span></div>
+            </div>
+          </article>
+        `).join('');
+      }catch(e){
+        console.error(e);
+        document.getElementById('grid').innerHTML = '<div class="card"><p>Impossible de charger le catalogue.</p></div>';
+      }
+    }
+    load();
+  </script>
+</body>
+</html>

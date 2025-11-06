@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Paganelli Exclusive Cars</title>
+  <meta name="description" content="Catalogue de véhicules haut de gamme pour particuliers." />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/styles.css" />
+  <script defer src="/scripts/identity-guard.js"></script>
+</head>
+<body>
+  <header class="container nav">
+    <a class="brand" href="/"><span>Paganelli</span> Exclusive Cars</a>
+    <div class="links">
+      <a href="/catalogue.html" class="btn">Catalogue</a>
+      <a id="add-btn" href="/admin/" class="btn cta hide">Ajouter véhicule</a>
+    </div>
+  </header>
+
+  <section class="container hero">
+    <div class="card">
+      <span class="tag">Nouveautés 2025</span>
+      <h1>Exclusivité. Performance. <span style="color:#d4af37">Plaisir.</span></h1>
+      <p>Découvrez une sélection de véhicules sportifs et premium, préparés et proposés aux particuliers par Paganelli Exclusive Cars.</p>
+      <div class="kpi">
+        <span class="badge">Sélection privée</span>
+        <span class="badge">Véhicules certifiés</span>
+        <span class="badge">Service sur mesure</span>
+      </div>
+      <p style="margin-top:16px">
+        <a class="btn gold" href="/catalogue.html">Voir le catalogue</a>
+        <a class="btn" href="mailto:contact@example.com">Nous contacter</a>
+      </p>
+    </div>
+    <img class="car" src="https://images.unsplash.com/photo-1511919884226-fd3cad34687c?q=80&w=1600&auto=format&fit=crop" alt="Voiture sportive sur fond sombre" />
+  </section>
+
+  <section class="container grid">
+    <div class="card">
+      <h3>Préparation</h3>
+      <p>Chaque véhicule passe par un contrôle rigoureux : moteur, transmission, suspension, freinage et sécurité.</p>
+    </div>
+    <div class="card">
+      <h3>Transparence</h3>
+      <p>Des fiches détaillées avec performances, équipements et historique pour vous décider en toute confiance.</p>
+    </div>
+    <div class="card">
+      <h3>Accompagnement</h3>
+      <p>Conseils personnalisés, essais et livraison : un service pensé pour les passionnés.</p>
+    </div>
+  </section>
+
+  <footer class="container footer">
+    <small>&copy; <span id="y"></span> Paganelli Exclusive Cars — Tous droits réservés.</small>
+  </footer>
+  <script>document.getElementById('y').textContent=new Date().getFullYear()</script>
+</body>
+</html>
