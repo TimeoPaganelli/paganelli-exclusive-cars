@@ -168,9 +168,9 @@ body::after {
 /* Bloc du texte (bannière) */
 .hero .card {
   position: absolute;
-  top: 13%; /* position sous le logo — ajuste entre 10 et 18% selon ton goût */
-  left: 50%;
-  transform: translateX(-50%);
+  top: 18%; /* un peu plus bas sous le logo */
+  left: 12%; /* décalé à gauche sous le logo */
+  transform: none; /* on retire le centrage */
   background: rgba(0, 0, 0, 0.55);
   padding: 24px 30px;
   border-radius: 14px;
