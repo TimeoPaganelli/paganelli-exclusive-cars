@@ -65,10 +65,30 @@ a{color:var(--text);text-decoration:none}
   max-width: 680px;
 }
 /* --- Logo Paganelli --- */
+/* --- Logo Paganelli --- */
 .logo {
-    height: 80px;
-    width: auto;
-    display: block;
-    margin: 10px 0;
+  height: 80px;
+  width: auto;
+  display: block;
+  margin: 10px 0;
 }
+
+/* --- Mise en page globale --- */
+.container {
+  max-width: 1400px;   /* élargit le contenu */
+  margin: 0 auto;      /* centre le tout */
+  padding: 0 40px;     /* ajoute un peu d’espace sur les côtés */
+}
+
+body {
+  min-height: 100vh;   /* occupe toute la hauteur de l’écran */
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.hero {
+  min-height: 80vh;    /* agrandit la section principale */
+}
+
 
