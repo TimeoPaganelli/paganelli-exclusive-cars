@@ -182,88 +182,48 @@
      *      ligne 1 (repliée)
      *      ligne 2
      */
-    function parseFrontMatter (txt) {
-      const out = {};
-      if (!txt.startsWith('---')) return out;
-      const end = txt.indexOf('\n---', 3);
-      if (end === -1) return out;
-      const block = txt.slice(3, end).replace(/^\s+|\s+$/g, '');
+function parseFrontMatter (txt) {
+  const out = {};
+  if (!txt.startsWith('---')) return out;
 
-      const lines = block.split(/\r?\n/);
-      let i = 0;
-      let currentKey = null;
-      let multiMode = null; // '|' ou '>'
-      let buffer = [];
+  const end = txt.indexOf('\n---', 3);
+  if (end === -1) return out;
 
-      function flush () {
-        if (!currentKey) return;
-        let val = buffer.join(multiMode === '>' ? ' ' : '\n');
-        // nettoie guillemets et espaces
-        val = val.replace(/^['"]|['"]$/g, '').trim();
-        out[currentKey] = val;
-        currentKey = null; multiMode = null; buffer = [];
-      }
+  const lines = txt.slice(3, end).replace(/\r/g, '').split('\n');
 
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    const m = line.match(/^\s*([A-Za-z0-9_-]+)\s*:\s*(.*)$/);
+    if (!m) continue;
+
+    const key = m[1];
+    let val = m[2];
+
+    // ✅ Gère les blocs YAML multi-lignes (|, >, etc.)
+    if (val === '|' || val === '|-' || val === '>' || val === '>-') {
+      let buf = [];
+      i++;
       while (i < lines.length) {
-        const line = lines[i];
-
-        // clé: valeur / clé: | / clé: >
-        const m = line.match(/^\s*([A-Za-z0-9_-]+)\s*:\s*(.*)\s*$/);
-        if (m) {
-          // On termine la clé précédente
-          if (currentKey) flush();
-
-          const key = m[1];
-          let val = m[2] ?? '';
-
-          // block scalars
-          if (val === '|' || val === '>') {
-            currentKey = key;
-            multiMode = val;
-            buffer = [];
-            i++;
-            // on lit les lignes suivantes indentées (au moins 1 ou 2 espaces)
-            while (i < lines.length) {
-              const l2 = lines[i];
-              if (/^\s{2,}\S/.test(l2) || /^\s*$/.test(l2)) {
-                buffer.push(l2.replace(/^\s{2}/, '')); // retire 2 espaces d'indentation
-                i++;
-              } else if (/^\s*[A-Za-z0-9_-]+\s*:/.test(l2)) {
-                // prochaine clé
-                break;
-              } else {
-                buffer.push(l2.trim());
-                i++;
-              }
-            }
-            // ne pas i++ ici car la boucle parent gère i
-            continue;
-          }
-
-          // valeur mono-ligne
-          currentKey = key;
-          multiMode = null;
-          buffer = [val];
-          flush();
+        const l = lines[i];
+        if (/^\s{2,}\S/.test(l) || l.trim() === '') {
+          buf.push(l.replace(/^\s{2}/, ''));
           i++;
           continue;
         }
-
-        // ligne indéterminée : si on est en multi-ligne, on accumule
-        if (currentKey && multiMode) {
-          buffer.push(line.replace(/^\s{2}/, ''));
-          i++;
-          continue;
-        }
-
-        i++;
+        i--;
+        break;
       }
-
-      // flush final si nécessaire
-      if (currentKey) flush();
-
-      return out;
+      val = buf.join('\n').trim();
+    } else {
+      val = val.replace(/^['"]|['"]$/g, '');
     }
+
+    out[key] = val;
+  }
+
+  return out;
+}
+
 
     function toInt (v) {
       if (typeof v === 'number') return v;
