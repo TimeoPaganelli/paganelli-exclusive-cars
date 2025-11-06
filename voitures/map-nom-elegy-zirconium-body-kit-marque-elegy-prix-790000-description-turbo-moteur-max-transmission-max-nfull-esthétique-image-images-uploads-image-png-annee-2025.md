@@ -4,7 +4,7 @@ marque: Elegy
 annee: 2025
 prix: 790000
 description: |-
-  Turbo , Moteur Max , Transmission max .
-  Full esthétique 
-image: /images/uploads/image.png
+  Turbo , Moteur 4/4 , Transmission 3/3 
+  Full esthétique , Cameleon
+image: /images/uploads/elegy-zirconium.png
 ---
