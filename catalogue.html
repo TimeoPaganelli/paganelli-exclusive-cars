@@ -6,7 +6,7 @@
   <title>Catalogue – Paganelli Exclusive Cars</title>
   <link rel="stylesheet" href="styles.css" />
   <style>
-    /* Style minimal, tu peux ajuster dans styles.css si tu préfères */
+    /* Palette de base (tu peux laisser styles.css gérer le thème si tu préfères) */
     :root {
       --bg: #0d0f12;
       --card: #151922;
@@ -14,6 +14,7 @@
       --muted: #98a2b3;
       --accent: #d1b46a; /* doré */
       --line: rgba(255,255,255,.06);
+      --overlay: rgba(0,0,0,.8);
     }
     body {
       margin: 0; background: var(--bg); color: var(--text);
@@ -25,9 +26,28 @@
     h1 {
       margin: 0 0 24px; font-size: 28px; letter-spacing: .4px;
     }
-    .sub {
-      margin: 0 0 28px; color: var(--muted);
+
+    .topbar {
+      display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:14px;
     }
+    .btn-home {
+      background: var(--card);
+      border: 1px solid var(--line);
+      color: var(--text);
+      text-decoration: none;
+      border-radius: 10px;
+      padding: 8px 12px;
+      font-size: 14px;
+      display:inline-flex; align-items:center; gap:8px;
+    }
+    .btn-home:hover { background: #1b2230; }
+
+    .sort {
+      background: var(--card); color: var(--text);
+      border:1px solid var(--line); border-radius:10px;
+      padding:8px 10px; font-size:14px;
+    }
+
     .grid {
       display: grid;
       grid-template-columns: repeat(1,minmax(0,1fr));
@@ -47,6 +67,8 @@
     .car:hover { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(0,0,0,.25); }
     .car__img {
       aspect-ratio: 16/9; width: 100%; object-fit: cover; background: #0b0d11;
+      cursor: zoom-in;
+      display:block;
     }
     .car__body {
       padding: 14px 14px 16px; display: grid; gap: 8px;
@@ -61,28 +83,46 @@
     }
     .desc {
       margin-top: 4px; color: #bcc3cf; font-size: 14px; line-height: 1.45;
-     white-space: pre-line;
+      white-space: pre-line;
     }
     .loading, .empty, .error {
       color: var(--muted); padding: 40px 0; text-align: center; border: 1px dashed var(--line); border-radius: 12px;
     }
-    .topbar {
-      display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:14px;
+
+    /* Lightbox */
+    .lightbox {
+      position: fixed; inset: 0;
+      background: var(--overlay);
+      display: grid; place-items: center;
+      padding: 24px;
+      z-index: 9999;
+      opacity: 0; pointer-events: none;
+      transition: opacity .15s ease;
     }
-    .sort {
-      background: var(--card); color: var(--text);
-      border:1px solid var(--line); border-radius:10px;
-      padding:8px 10px; font-size:14px;
+    .lightbox.open { opacity: 1; pointer-events: auto; }
+    .lightbox__img {
+      max-width: min(92vw, 1600px);
+      max-height: 88vh;
+      width: auto; height: auto;
+      border-radius: 12px;
+      box-shadow: 0 20px 60px rgba(0,0,0,.45);
     }
+    .lightbox__close {
+      position: fixed; top: 14px; right: 14px;
+      background: rgba(0,0,0,.5);
+      border: 1px solid var(--line);
+      color: #fff; cursor: pointer;
+      font-size: 14px; padding: 8px 10px; border-radius: 10px;
+    }
+    .no-scroll { overflow: hidden; }
   </style>
 </head>
 <body>
   <div class="wrap">
     <h1>Catalogue</h1>
-    <p class="sub">Toutes les voitures que tu as publiées depuis l’admin s’afficheront automatiquement ici.</p>
 
     <div class="topbar">
-      <div></div>
+      <a class="btn-home" href="/index.html" aria-label="Retour à l’accueil">← Accueil</a>
       <select id="sort" class="sort" aria-label="Trier">
         <option value="recent">Plus récentes</option>
         <option value="prix-asc">Prix croissant</option>
@@ -95,13 +135,19 @@
     <div id="grid" class="grid" hidden></div>
   </div>
 
+  <!-- Lightbox -->
+  <div id="lightbox" class="lightbox" aria-hidden="true">
+    <img id="lightbox-img" class="lightbox__img" src="" alt="">
+    <button id="lightbox-close" class="lightbox__close" type="button">Fermer ✕</button>
+  </div>
+
   <script>
     // ⚙️ Paramètres du dépôt GitHub (public)
     const GH_OWNER  = 'TimeoPaganelli';
     const GH_REPO   = 'paganelli-exclusive-cars';
     const GH_BRANCH = 'main';
 
-    // Dossier où Netlify CMS enregistre les fiches (config.yml -> collections -> folder)
+    // Dossier où Netlify CMS enregistre les fiches
     const COLLECTION_DIR = 'voitures';
 
     const apiList = `https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/${COLLECTION_DIR}?ref=${GH_BRANCH}`;
@@ -109,6 +155,11 @@
     const $grid   = document.getElementById('grid');
     const $status = document.getElementById('status');
     const $sort   = document.getElementById('sort');
+
+    // Lightbox elements
+    const $lightbox = document.getElementById('lightbox');
+    const $lightImg = document.getElementById('lightbox-img');
+    const $lightClose = document.getElementById('lightbox-close');
 
     let CARS = [];
 
@@ -133,6 +184,17 @@
         $grid.hidden   = false;
 
         $sort.addEventListener('change', render);
+
+        // Lightbox: gestion des clics sur les images
+        $grid.addEventListener('click', onGridClick);
+        $lightbox.addEventListener('click', (e) => {
+          // fermer si on clique en dehors de l'image
+          if (e.target === $lightbox) closeLightbox();
+        });
+        $lightClose.addEventListener('click', closeLightbox);
+        window.addEventListener('keydown', (e) => {
+          if (e.key === 'Escape') closeLightbox();
+        });
       } catch (err) {
         console.error(err);
         $status.className = 'error';
@@ -152,7 +214,6 @@
         const raw = await fetch(file.download_url).then(r => r.text());
         const fm = parseFrontMatter(raw);
 
-        // Normalise les champs (issus du config.yml)
         const nom    = fm.nom    || fm.title || '';
         const marque = fm.marque || '';
         const annee  = toInt(fm.annee);
@@ -160,7 +221,7 @@
         const desc   = (fm.description || '').trim();
         let   image  = fm.image || '';
 
-        // Si l’image est un chemin relatif du dépôt, on peut l’utiliser tel quel (Netlify la sert depuis /images/uploads/)
+        // Si l’image est un chemin relatif du dépôt, on peut l’utiliser tel quel
         if (image && !/^https?:\/\//i.test(image)) {
           if (!image.startsWith('/')) image = '/' + image;
         }
@@ -172,58 +233,46 @@
       }
     }
 
-    /**
-     * Parser simple de front matter YAML, avec support des valeurs multi-lignes :
-     *  - clé: valeur
-     *  - clé: |
-     *      ligne 1
-     *      ligne 2
-     *  - clé: >
-     *      ligne 1 (repliée)
-     *      ligne 2
-     */
-function parseFrontMatter (txt) {
-  const out = {};
-  if (!txt.startsWith('---')) return out;
+    // Parser front matter (support des blocs | et >)
+    function parseFrontMatter (txt) {
+      const out = {};
+      if (!txt.startsWith('---')) return out;
 
-  const end = txt.indexOf('\n---', 3);
-  if (end === -1) return out;
+      const end = txt.indexOf('\n---', 3);
+      if (end === -1) return out;
 
-  const lines = txt.slice(3, end).replace(/\r/g, '').split('\n');
+      const lines = txt.slice(3, end).replace(/\r/g, '').split('\n');
 
-  for (let i = 0; i < lines.length; i++) {
-    const line = lines[i];
-    const m = line.match(/^\s*([A-Za-z0-9_-]+)\s*:\s*(.*)$/);
-    if (!m) continue;
+      for (let i = 0; i < lines.length; i++) {
+        const line = lines[i];
+        const m = line.match(/^\s*([A-Za-z0-9_-]+)\s*:\s*(.*)$/);
+        if (!m) continue;
 
-    const key = m[1];
-    let val = m[2];
+        const key = m[1];
+        let val = m[2];
 
-    // ✅ Gère les blocs YAML multi-lignes (|, >, etc.)
-    if (val === '|' || val === '|-' || val === '>' || val === '>-') {
-      let buf = [];
-      i++;
-      while (i < lines.length) {
-        const l = lines[i];
-        if (/^\s{2,}\S/.test(l) || l.trim() === '') {
-          buf.push(l.replace(/^\s{2}/, ''));
+        if (val === '|' || val === '|-' || val === '>' || val === '>-') {
+          let buf = [];
           i++;
-          continue;
+          while (i < lines.length) {
+            const l = lines[i];
+            if (/^\s{2,}\S/.test(l) || l.trim() === '') {
+              buf.push(l.replace(/^\s{2}/, ''));
+              i++;
+              continue;
+            }
+            i--;
+            break;
+          }
+          val = buf.join('\n').trim();
+        } else {
+          val = val.replace(/^['"]|['"]$/g, '');
         }
-        i--;
-        break;
+
+        out[key] = val;
       }
-      val = buf.join('\n').trim();
-    } else {
-      val = val.replace(/^['"]|['"]$/g, '');
+      return out;
     }
-
-    out[key] = val;
-  }
-
-  return out;
-}
-
 
     function toInt (v) {
       if (typeof v === 'number') return v;
@@ -251,12 +300,13 @@ function parseFrontMatter (txt) {
     }
 
     function cardHTML (car) {
-      const img = car.image || 'https://images.unsplash.com/photo-1517602302552-471fe67acf66?q=80&w=1200&auto=format&fit=crop'; // fallback
+      const img = car.image || 'https://images.unsplash.com/photo-1517602302552-471fe67acf66?q=80&w=1200&auto=format&fit=crop';
+      const alt = escapeHTML(car.nom);
       return `
         <article class="car">
-          <img class="car__img" src="${img}" alt="${escapeHTML(car.nom)}" loading="lazy" />
+          <img class="car__img" src="${img}" alt="${alt}" loading="lazy" data-full="${img}" />
           <div class="car__body">
-            <div class="car__title">${escapeHTML(car.nom)}</div>
+            <div class="car__title">${alt}</div>
             <div class="car__meta">
               <span class="pill">${escapeHTML(car.marque || '—')}</span>
               <span class="pill">${car.annee || '—'}</span>
@@ -272,6 +322,30 @@ function parseFrontMatter (txt) {
       return String(s).replace(/[&<>"']/g, m => ({
         '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'
       }[m]));
+    }
+
+    /* ---------- Lightbox logic ---------- */
+    function onGridClick(e) {
+      const img = e.target.closest('.car__img');
+      if (!img) return;
+
+      const full = img.getAttribute('data-full') || img.src;
+      openLightbox(full, img.alt || 'Aperçu');
+    }
+
+    function openLightbox(src, alt='') {
+      $lightImg.src = src;
+      $lightImg.alt = alt;
+      $lightbox.classList.add('open');
+      document.body.classList.add('no-scroll');
+      $lightbox.setAttribute('aria-hidden', 'false');
+    }
+    function closeLightbox() {
+      $lightbox.classList.remove('open');
+      document.body.classList.remove('no-scroll');
+      $lightbox.setAttribute('aria-hidden', 'true');
+      // libère la source après l'anim (prévention des flashs)
+      setTimeout(()=>{ $lightImg.src=''; }, 150);
     }
   </script>
 </body>
