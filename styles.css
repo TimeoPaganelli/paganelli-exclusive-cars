@@ -107,31 +107,6 @@ body {
 .hero {
   min-height: 90vh;              /* on augmente encore la hauteur du bloc principal */
 }
-/* --- Hero en pleine largeur --- */
-.hero {
-  width: 100vw;               /* pleine largeur de la fenêtre */
-  max-width: none;            /* supprime les limites de container */
-  margin-left: calc(50% - 50vw); /* annule le centrage automatique */
-  position: relative;
-  overflow: hidden;
-}
 
-.hero img.car {
-  width: 100%;
-  height: auto;
-  object-fit: cover;          /* garde les proportions sans déformation */
-  border-radius: 0;           /* retire les coins arrondis pour effet plein écran */
-}
-
-.hero .card {
-  position: absolute;
-  bottom: 10%;
-  left: 8%;
-  background: rgba(0, 0, 0, 0.55);
-  padding: 24px 28px;
-  border-radius: 12px;
-  max-width: 600px;
-  color: white;
-}
 
 
