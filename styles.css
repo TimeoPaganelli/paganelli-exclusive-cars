@@ -64,4 +64,10 @@ a{color:var(--text);text-decoration:none}
   padding: 22px 22px 18px;
   max-width: 680px;
 }
+/* --- Logo Paganelli --- */
+.logo {
+  height: 60px;
+  width: auto;
+  display: block;
+}
 
