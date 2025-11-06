@@ -107,6 +107,26 @@ body {
 .hero {
   min-height: 90vh;              /* on augmente encore la hauteur du bloc principal */
 }
+body::before,
+body::after {
+  content: "";
+  position: fixed;
+  top: 0;
+  width: 120px;
+  height: 100%;
+  pointer-events: none;
+  z-index: 0;
+}
+
+body::before {
+  left: 0;
+  background: radial-gradient(circle at left center, rgba(212,175,55,0.15), transparent 70%);
+}
+
+body::after {
+  right: 0;
+  background: radial-gradient(circle at right center, rgba(212,175,55,0.15), transparent 70%);
+}
 
 
 
