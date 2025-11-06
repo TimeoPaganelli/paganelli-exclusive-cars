@@ -127,6 +127,28 @@ body::after {
   right: 0;
   background: radial-gradient(circle at right center, rgba(212,175,55,0.15), transparent 70%);
 }
+/* --- Amélioration du halo doré latéral (effet plus doux et naturel) --- */
+body::before,
+body::after {
+  content: "";
+  position: fixed;
+  top: 0;
+  width: 140px;
+  height: 100%;
+  pointer-events: none;
+  z-index: 0;
+  filter: blur(20px); /* flou subtil */
+}
+
+body::before {
+  left: 0;
+  background: radial-gradient(circle at left center, rgba(212,175,55,0.12), transparent 80%);
+}
+
+body::after {
+  right: 0;
+  background: radial-gradient(circle at right center, rgba(212,175,55,0.12), transparent 80%);
+}
 
 
 
