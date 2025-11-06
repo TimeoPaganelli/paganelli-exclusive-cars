@@ -90,5 +90,22 @@ body {
 .hero {
   min-height: 80vh;    /* agrandit la section principale */
 }
+/* --- Correction largeur --- */
+.container {
+  max-width: 1600px !important;  /* on force la largeur maximale */
+  width: 100%;                   /* occupe toute la largeur possible */
+  margin: 0 auto;
+  padding: 0 40px;
+}
+
+.hero img.car {
+  width: 100%;                   /* l'image prend toute la largeur */
+  height: auto;
+  border-radius: 16px;           /* optionnel, pour un rendu plus élégant */
+}
+
+.hero {
+  min-height: 90vh;              /* on augmente encore la hauteur du bloc principal */
+}
 
 
