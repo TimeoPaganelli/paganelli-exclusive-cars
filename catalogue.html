@@ -3,58 +3,242 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Catalogue — Paganelli Exclusive Cars</title>
-  <link rel="stylesheet" href="/styles.css" />
-  <script defer src="/scripts/identity-guard.js"></script>
+  <title>Catalogue – Paganelli Exclusive Cars</title>
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    /* Style minimal, tu peux ajuster dans styles.css si tu préfères */
+    :root {
+      --bg: #0d0f12;
+      --card: #151922;
+      --text: #e9edf1;
+      --muted: #98a2b3;
+      --accent: #d1b46a; /* doré */
+      --line: rgba(255,255,255,.06);
+    }
+    body {
+      margin: 0; background: var(--bg); color: var(--text);
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji";
+    }
+    .wrap {
+      max-width: 1200px; margin: 40px auto; padding: 0 20px;
+    }
+    h1 {
+      margin: 0 0 24px; font-size: 28px; letter-spacing: .4px;
+    }
+    .sub {
+      margin: 0 0 28px; color: var(--muted);
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(1,minmax(0,1fr));
+      gap: 18px;
+    }
+    @media (min-width: 640px) { .grid { grid-template-columns: repeat(2,minmax(0,1fr)); } }
+    @media (min-width: 1024px){ .grid { grid-template-columns: repeat(3,minmax(0,1fr)); } }
+
+    .car {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      overflow: hidden;
+      display: flex; flex-direction: column;
+      transition: transform .15s ease, box-shadow .15s ease;
+    }
+    .car:hover { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(0,0,0,.25); }
+    .car__img {
+      aspect-ratio: 16/9; width: 100%; object-fit: cover; background: #0b0d11;
+    }
+    .car__body {
+      padding: 14px 14px 16px; display: grid; gap: 8px;
+    }
+    .car__title { font-size: 18px; font-weight: 650; line-height: 1.3; }
+    .car__meta { color: var(--muted); font-size: 14px; display: flex; gap: 10px; flex-wrap: wrap; }
+    .pill {
+      border: 1px solid var(--line); padding: 2px 8px; border-radius: 999px; font-size: 12px; color: var(--muted);
+    }
+    .price {
+      color: var(--accent); font-weight: 650; letter-spacing: .2px;
+    }
+    .desc {
+      margin-top: 4px; color: #bcc3cf; font-size: 14px; line-height: 1.45;
+      display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
+    }
+    .loading, .empty, .error {
+      color: var(--muted); padding: 40px 0; text-align: center; border: 1px dashed var(--line); border-radius: 12px;
+    }
+    .topbar {
+      display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:14px;
+    }
+    .sort {
+      background: var(--card); color: var(--text);
+      border:1px solid var(--line); border-radius:10px;
+      padding:8px 10px; font-size:14px;
+    }
+  </style>
 </head>
 <body>
-  <header class="container nav">
-    <a class="brand" href="/"><span>Paganelli</span> Exclusive Cars</a>
-    <div class="links">
-      <a href="/catalogue.html" class="btn">Catalogue</a>
-      <a id="add-btn" href="/admin/" class="btn cta hide">Ajouter véhicule</a>
-    </div>
-  </header>
-  <main class="container">
+  <div class="wrap">
     <h1>Catalogue</h1>
-    <p class="badge">Les véhicules apparaissent ici automatiquement après ajout via l’espace administrateur.</p>
-    <div id="grid" class="grid" style="margin-top:16px"></div>
-  </main>
-  <footer class="container footer">
-    <small>&copy; <span id="y"></span> Paganelli Exclusive Cars</small>
-  </footer>
-  <script>document.getElementById('y').textContent=new Date().getFullYear()</script>
+    <p class="sub">Toutes les voitures que tu as publiées depuis l’admin s’afficheront automatiquement ici.</p>
+
+    <div class="topbar">
+      <div></div>
+      <select id="sort" class="sort" aria-label="Trier">
+        <option value="recent">Plus récentes</option>
+        <option value="prix-asc">Prix croissant</option>
+        <option value="prix-desc">Prix décroissant</option>
+        <option value="nom">Nom (A→Z)</option>
+      </select>
+    </div>
+
+    <div id="status" class="loading">Chargement du catalogue…</div>
+    <div id="grid" class="grid" hidden></div>
+  </div>
+
   <script>
-    async function load() {
-      try{
-        const res = await fetch('/data/vehicles.json', {cache:'no-store'});
-        const data = await res.json();
-        const grid = document.getElementById('grid');
-        if(!data.vehicles || !data.vehicles.length){
-          grid.innerHTML = '<div class="card"><p>Aucun véhicule pour le moment.</p></div>';
+    // ⚙️ Paramètres du dépôt GitHub (public)
+    const GH_OWNER  = 'TimeoPaganelli';
+    const GH_REPO   = 'paganelli-exclusive-cars';
+    const GH_BRANCH = 'main';
+
+    // Dossier où Netlify CMS enregistre les fiches (config.yml -> collections -> folder)
+    const COLLECTION_DIR = 'voitures';
+
+    const apiList = `https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/${COLLECTION_DIR}?ref=${GH_BRANCH}`;
+
+    const $grid   = document.getElementById('grid');
+    const $status = document.getElementById('status');
+    const $sort   = document.getElementById('sort');
+
+    let CARS = [];
+
+    init();
+
+    async function init () {
+      try {
+        const files = await fetchJSON(apiList);
+        const mdFiles = (files || []).filter(f => f && /\.md$/i.test(f.name));
+
+        if (!mdFiles.length) {
+          $status.className = 'empty';
+          $status.textContent = 'Aucune voiture publiée pour le moment.';
           return;
         }
-        const toDot = (n) => Array.from({length:5}, (_,i)=>'<span class="dot '+(i<n?'on':'')+'"></span>').join('');
-        grid.innerHTML = data.vehicles.map(v => `
-          <article class="card">
-            <img src="${(v.photos && v.photos[0]) || 'https://images.unsplash.com/photo-1511919884226-fd3cad34687c?q=80&w=1200&auto=format&fit=crop'}" alt="${v.nom||'Véhicule'}" style="width:100%;aspect-ratio:16/10;object-fit:cover;border-radius:12px;border:1px solid var(--border)">
-            <h3 style="margin:12px 0">${v.nom||'Véhicule'}</h3>
-            <div class="kpi">
-              <div class="meter"><strong>Moteur</strong><div class="dots">${toDot(v.moteur||0)}</div></div>
-              <div class="meter"><strong>Transmission</strong><div class="dots">${toDot(v.transmission||0)}</div></div>
-              <div class="meter"><strong>Suspension</strong><div class="dots">${toDot(v.suspension||0)}</div></div>
-              <div class="meter"><strong>Frein</strong><div class="dots">${toDot(v.frein||0)}</div></div>
-              <div class="meter"><strong>Blindage</strong><div class="dots">${toDot(v.blindage||0)}</div></div>
-              <div class="meter"><strong>Turbo</strong><span class="badge">${v.turbo?'Oui':'Non'}</span></div>
-            </div>
-          </article>
-        `).join('');
-      }catch(e){
-        console.error(e);
-        document.getElementById('grid').innerHTML = '<div class="card"><p>Impossible de charger le catalogue.</p></div>';
+
+        CARS = (await Promise.all(mdFiles.map(loadCarFile)))
+          .filter(Boolean);
+
+        render();
+        $status.hidden = true;
+        $grid.hidden   = false;
+
+        $sort.addEventListener('change', render);
+      } catch (err) {
+        console.error(err);
+        $status.className = 'error';
+        $status.textContent = 'Erreur lors du chargement du catalogue.';
       }
     }
-    load();
+
+    async function fetchJSON (url) {
+      const r = await fetch(url);
+      if (!r.ok) throw new Error(`HTTP ${r.status} on ${url}`);
+      return r.json();
+    }
+
+    // Récupère un fichier Markdown et parse le "front matter"
+    async function loadCarFile (file) {
+      try {
+        const raw = await fetch(file.download_url).then(r => r.text());
+        const fm = parseFrontMatter(raw);
+
+        // Normalise les champs (issus du config.yml)
+        const nom   = fm.nom   || fm.title || '';
+        const marque= fm.marque|| '';
+        const annee = toInt(fm.annee);
+        const prix  = toInt(fm.prix);
+        const desc  = fm.description || '';
+        let   image = fm.image || '';
+
+        // Si l’image est un chemin relatif du dépôt, on peut l’utiliser tel quel (Netlify la sert depuis /images/uploads/)
+        if (image && !/^https?:\/\//i.test(image)) {
+          if (!image.startsWith('/')) image = '/' + image;
+        }
+
+        return { nom, marque, annee, prix, desc, image };
+      } catch (e) {
+        console.warn('Skip file', file.name, e);
+        return null;
+      }
+    }
+
+    // Parser très simple du front matter YAML (clé: valeur) — suffisant pour nos champs
+    function parseFrontMatter (txt) {
+      const out = {};
+      if (!txt.startsWith('---')) return out;
+      const end = txt.indexOf('\n---', 3);
+      if (end === -1) return out;
+      const block = txt.slice(3, end).trim();
+      block.split(/\r?\n/).forEach(line => {
+        const m = line.match(/^\s*([A-Za-z0-9_-]+)\s*:\s*(.*)\s*$/);
+        if (!m) return;
+        const key = m[1];
+        let val   = m[2];
+        // nettoie les guillemets
+        val = val.replace(/^['"]|['"]$/g, '');
+        out[key] = val;
+      });
+      return out;
+    }
+
+    function toInt (v) {
+      if (typeof v === 'number') return v;
+      if (!v) return 0;
+      return parseInt(String(v).replace(/[^\d]/g, ''), 10) || 0;
+    }
+
+    function formatPrice (n) {
+      if (!n) return '—';
+      return new Intl.NumberFormat('fr-FR', { style:'currency', currency:'EUR', maximumFractionDigits:0 }).format(n);
+    }
+
+    function render () {
+      const mode = $sort.value;
+      const list = [...CARS];
+
+      switch (mode) {
+        case 'prix-asc':  list.sort((a,b)=>a.prix-b.prix); break;
+        case 'prix-desc': list.sort((a,b)=>b.prix-a.prix); break;
+        case 'nom':       list.sort((a,b)=>a.nom.localeCompare(b.nom,'fr')); break;
+        default:          list.sort((a,b)=>b.annee-a.annee || a.nom.localeCompare(b.nom,'fr')); // "recent"
+      }
+
+      $grid.innerHTML = list.map(car => cardHTML(car)).join('');
+    }
+
+    function cardHTML (car) {
+      const img = car.image || 'https://images.unsplash.com/photo-1517602302552-471fe67acf66?q=80&w=1200&auto=format&fit=crop'; // fallback
+      return `
+        <article class="car">
+          <img class="car__img" src="${img}" alt="${escapeHTML(car.nom)}" loading="lazy" />
+          <div class="car__body">
+            <div class="car__title">${escapeHTML(car.nom)}</div>
+            <div class="car__meta">
+              <span class="pill">${escapeHTML(car.marque || '—')}</span>
+              <span class="pill">${car.annee || '—'}</span>
+              <span class="price">${formatPrice(car.prix)}</span>
+            </div>
+            <div class="desc">${escapeHTML(car.desc || '')}</div>
+          </div>
+        </article>
+      `;
+    }
+
+    function escapeHTML (s='') {
+      return String(s).replace(/[&<>"']/g, m => ({
+        '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'
+      }[m]));
+    }
   </script>
 </body>
 </html>
