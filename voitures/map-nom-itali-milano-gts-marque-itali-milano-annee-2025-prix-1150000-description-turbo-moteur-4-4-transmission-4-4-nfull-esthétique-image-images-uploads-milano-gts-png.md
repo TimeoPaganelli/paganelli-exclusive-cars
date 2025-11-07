@@ -6,5 +6,5 @@ prix: 1150000
 description: |-
   Turbo , Moteur 4/4 , Transmission 4/4
   Full Esthétique 
-image: /images/uploads/milano-gts.png
+image: /images/uploads/itali-milano-gts.png
 ---
