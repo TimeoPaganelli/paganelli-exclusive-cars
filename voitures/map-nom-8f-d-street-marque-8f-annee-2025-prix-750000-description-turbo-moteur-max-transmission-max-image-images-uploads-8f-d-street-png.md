@@ -2,7 +2,7 @@
 nom: 8F D-Street
 marque: 8F
 annee: 2025
-prix: 680000
+prix: 660000
 description: |-
   Turbo , Moteur 4/4 , Transmission 4/4 , Suspension 2/4
   Full Esthétique , Autoradio 
