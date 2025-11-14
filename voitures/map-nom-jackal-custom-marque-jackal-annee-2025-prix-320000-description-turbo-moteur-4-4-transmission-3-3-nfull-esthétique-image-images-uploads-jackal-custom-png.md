@@ -2,7 +2,7 @@
 nom: Jackal Custom
 marque: Jackal
 annee: 2025
-prix: 285000
+prix: 275000
 description: |-
   Turbo , Moteur 4/4 , Transmission 3/3 
   Full Esthétique , Autoradio
