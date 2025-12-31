@@ -2,7 +2,7 @@
 nom: Itali N-Larga
 marque: Itali N-Larga
 annee: 2025
-prix: 1150000
+prix: 990000
 description: |-
   Turbo , Moteur 5/5 , Transmission 4/4
   Suspension 5/6 ,
